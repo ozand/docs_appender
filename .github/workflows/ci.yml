@@ -1,0 +1,153 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+          # Устанавливаем uv, если он еще не установлен
+          enable-cache: true
+      
+      # --- Линтинг и форматирование для бэкенда ---
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          uv sync --dev
+          
+      - name: Run ruff check (backend)
+        run: |
+          cd backend
+          uv run ruff check .
+          
+      - name: Run ruff format --check (backend)
+        run: |
+          cd backend
+          uv run ruff format --check .
+
+      # --- Линтинг и форматирование для фронтенда ---
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          uv sync --dev
+          
+      - name: Run ruff check (frontend)
+        run: |
+          cd frontend
+          uv run ruff check .
+          
+      - name: Run ruff format --check (frontend)
+        run: |
+          cd frontend
+          uv run ruff format --check .
+
+      # --- Линтинг и форматирование для shared ---
+      - name: Run ruff check (shared)
+        run: |
+          cd backend # Используем окружение бэкенда, так как ruff установлен там
+          uv run ruff check ../shared
+          
+      - name: Run ruff format --check (shared)
+        run: |
+          cd backend
+          uv run ruff format --check ../shared
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      
+      # --- Проверка типов для бэкенда ---
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          uv sync --dev
+          
+      - name: Run mypy (backend)
+        run: |
+          cd backend
+          # Передаем путь к конфигу через --config-file
+          uv run mypy --config-file=pyproject.toml ../backend
+      
+      # --- Проверка типов для фронтенда ---
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          uv sync --dev
+          
+      - name: Run mypy (frontend)
+        run: |
+          cd frontend
+          uv run mypy --config-file=pyproject.toml ../frontend
+
+      # --- Проверка типов для shared ---
+      - name: Run mypy (shared)
+        run: |
+          cd backend # Используем окружение бэкенда
+          # shared не имеет своего pyproject.toml, используем конфиг бэкенда
+          # и указываем путь к shared
+          uv run mypy --config-file=pyproject.toml ../shared
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      
+      # --- Тестирование shared ---
+      - name: Install backend dependencies (for pytest)
+        run: |
+          cd backend
+          uv sync --dev
+          
+      - name: Run tests for shared module
+        run: |
+          cd backend
+          uv run pytest ../tests/shared -v
+          
+      # --- (Опционально) Тестирование бэкенда ---
+      # - name: Install backend test dependencies (if any specific ones are needed)
+      #   run: |
+      #     cd backend
+      #     uv pip install httpx # Пример, если нужны дополнительные зависимости для тестов
+      
+      # - name: Run backend API tests
+      #   run: |
+      #     cd backend
+      #     uv run pytest ../tests/backend -v
+
+      # --- (Опционально) Тестирование фронтенда ---
+      # - name: Install frontend test dependencies (if any specific ones are needed)
+      #   run: |
+      #     cd frontend
+      #     # Установка зависимостей для тестирования Streamlit приложений
+      
+      # - name: Run frontend tests
+      #   run: |
+      #     cd frontend
+      #     uv run pytest ../tests/frontend -v
