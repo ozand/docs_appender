@@ -5,6 +5,17 @@
 1.  **Бэкенд (FastAPI)**: REST API, реализующий логику объединения файлов.
 2.  **Фронтенд (Streamlit)**: Веб-интерфейс для взаимодействия с пользователем.
 
+## Документация
+
+Полная документация проекта доступна в директории [`docs/`](docs/):
+
+*   **[Главная (Обзор, Быстрый старт)](docs/index.md)**
+*   **[Установка](docs/installation.md)**
+*   **[Использование](docs/usage.md)**
+*   **[API бэкенда](docs/api.md)**
+*   **[Разработка](docs/development.md)**
+*   **[Внесение вклада](docs/contributing.md)**
+
 ## Структура проекта
 
 ```
@@ -20,13 +31,14 @@
 ├── tests/
 │   └── shared/
 │       └── test_combine_logic.py # Тесты для общей логики
-├── .pre-commit-config.yaml # Конфигурация pre-commit хуков
-├── run_app.bat          # Универсальный скрипт запуска (Windows)
-├── run_backend.bat      # (Устарел) Скрипт запуска бэкенда (Windows)
-├── run_frontend.bat     # (Устарел) Скрипт запуска фронтенда (Windows)
-├── run_tests.bat        # Скрипт запуска тестов (Windows)
-├── run_tests.sh         # Скрипт запуска тестов (Unix)
-└── README.md            # Этот файл
+├── docs/                      # Документация
+├── .github/workflows/         # GitHub Actions CI/CD
+├── .pre-commit-config.yaml    # Конфигурация pre-commit хуков
+├── docker-compose.yml         # Конфигурация Docker Compose
+├── run_app.bat / .sh          # Универсальный скрипт запуска
+├── run_tests.bat / .sh        # Скрипт запуска тестов
+├── CONTRIBUTING.md            # Руководство по внесению вклада
+└── README.md                  # Этот файл
 ```
 *Примечание: Файлы `requirements.txt` были удалены в пользу `pyproject.toml` для управления зависимостями с помощью `uv`.*
 
