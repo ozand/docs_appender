@@ -7,8 +7,11 @@ from typing import List, Optional, Dict, Any
 
 def normalize_anchor(filename: str) -> str:
     """Генерирует валидную якорную ссылку для markdown из имени файла."""
+    # Паттерн: разрешаем буквы, цифры, кириллицу, подчеркивание и дефис.
+    # Дефис в конце [], чтобы он не интерпретировался как диапазон.
+    allowed_chars_pattern = r'[^a-z0-9а-яё_\--]' 
     return re.sub(
-        r'[^a-z0-9а-яё\\-_]', '',
+        allowed_chars_pattern, '',
         filename.lower()
             .replace(' ', '-')
             .replace('.', '-')

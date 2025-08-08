@@ -18,6 +18,9 @@ dependencies = [
 dev-dependencies = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "pytest>=7.0.0,<8.0.0",
+    "pytest-cov>=4.0.0,<5.0.0",
+    "httpx>=0.23.0,<0.24.0", # Для тестирования FastAPI приложений
 ]
 
 [tool.ruff]
@@ -27,6 +30,10 @@ select = ["F","E","W","I","UP","B","BLE"]
 ignore = ["E501", "B008"]
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."] # Добавляем текущую директорию в путь поиска модулей для pytest
 
 # [tool.mypy]
 # python_version = "3.8"
