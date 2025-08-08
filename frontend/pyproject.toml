@@ -14,9 +14,18 @@ dependencies = [
 
 [tool.uv]
 dev-dependencies = [
-    # Добавьте сюда зависимости для разработки, если потребуются
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
 ]
 
+[tool.ruff]
+line-length = 90
+[tool.ruff.lint]
+select = ["F","E","W","I","UP","B","BLE"]
+ignore = ["E501", "BLE001"]
+[tool.ruff.format]
+quote-style = "double"
+
 # Опционально: настройки для инструментов
-# [tool.ruff]
-# line-length = 88
+# [tool.mypy]
+# python_version = "3.8"
