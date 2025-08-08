@@ -1,0 +1,26 @@
+[project]
+name = "file-combiner-backend"
+version = "0.1.0"
+description = "FastAPI backend for the File Combiner application."
+authors = [{ name = "Your Name", email = "you@example.com" }] # Замените на свои данные
+readme = "README.md" # Если есть отдельный README для бэкенда, иначе можно удалить
+requires-python = ">=3.8"
+
+dependencies = [
+    "fastapi>=0.68.0,<0.69.0",
+    "uvicorn>=0.15.0,<0.16.0",
+    "python-multipart>=0.0.5,<0.1.0",
+    "pydantic>=1.8.0,<2.0.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    # Добавьте сюда зависимости для разработки, если потребуются (например, линтеры, тесты)
+]
+
+# Опционально: настройки для инструментов, если они будут использоваться
+# [tool.ruff]
+# line-length = 88
+
+# [tool.mypy]
+# python_version = "3.8"

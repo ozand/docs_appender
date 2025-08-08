@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Опционально: монтируем директорию shared, если логика там будет обновляться
+      # и вы хотите видеть изменения без пересборки образа (для разработки)
+      # - ./shared:/app/shared
+    environment:
+      # Можно задать переменные окружения, если они понадобятся
+      - PYTHONPATH=/app
+    # healthcheck для проверки состояния сервиса
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      # Адрес бэкенда внутри docker-compose сети
+      # Убедитесь, что API_URL в frontend/app.py использует это имя хоста
+      - BACKEND_URL=http://backend:8000
+    # Фронтенд зависит от бэкенда
+    depends_on:
+      backend:
+        condition: service_healthy
+    # healthcheck для проверки состояния сервиса
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8501/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
