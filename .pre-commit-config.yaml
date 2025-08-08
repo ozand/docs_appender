@@ -1,0 +1,59 @@
+# .pre-commit-config.yaml
+# Конфигурационный файл для pre-commit хуков.
+
+# Репозитории с хуками
+repos:
+  # Хуки для ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Версия ruff, соответствующая той, что указана в pyproject.toml
+    rev: v0.1.15 
+    hooks:
+      # ruff check (аналог lint)
+      - id: ruff
+        # Указываем пути, которые нужно проверять
+        files: ^(shared|backend|frontend)/
+        # Аргументы для ruff check
+        args: [--fix, --exit-non-zero-on-fix]
+      # ruff format
+      - id: ruff-format
+        # Указываем пути, которые нужно форматировать
+        files: ^(shared|backend|frontend)/
+  
+  # Хуки для mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    # Версия mypy, соответствующая той, что указана в pyproject.toml
+    rev: v1.11.1 
+    hooks:
+      - id: mypy
+        # Указываем пути, которые нужно проверять
+        files: ^(shared|backend|frontend)/
+        # Аргументы для mypy
+        args: [--config-file=backend/pyproject.toml] # Используем конфиг из backend
+        # Дополнительные зависимости, которые могут понадобиться mypy
+        additional_dependencies:
+          - types-PyYAML
+          - types-requests
+          - types-setuptools
+          # Для FastAPI
+          - fastapi
+          # Для Streamlit
+          - streamlit
+          # Для Pydantic
+          - pydantic
+          # types-uvicorn не существует, поэтому не добавляем
+        
+  # Хуки для pytest (необязательный, для демонстрации)
+  # Запуск всех тестов может быть слишком медленным для pre-commit.
+  # Лучше запускать тесты вручную или в CI.
+  # - repo: local
+  #   hooks:
+  #     - id: pytest-check
+  #       name: pytest-check
+  #       entry: cd backend && uv run pytest ../tests/shared
+  #       language: system
+  #       # Указываем типы файлов, при изменении которых хук должен запускаться
+  #       types: [python]
+  #       # Указываем конкретные пути, если нужно
+  #       files: ^(shared|tests)/
+  #       # Пропускаем, если нет изменений в указанных путях
+  #       pass_filenames: false

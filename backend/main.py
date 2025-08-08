@@ -153,7 +153,7 @@ async def combine_files_endpoint(
                 preprocessing_options,
                 output_format,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Перехватываем любые ошибки из shared логики и превращаем их в HTTP 500
             raise HTTPException(
                 status_code=500, detail=f"Error in combine logic: {str(e)}"
@@ -169,7 +169,7 @@ async def combine_files_endpoint(
 
         return PlainTextResponse(content=combined_content, media_type=media_type)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # Перехватываем любые другие непредвиденные ошибки
         raise HTTPException(
             status_code=500, detail=f"Internal server error: {str(e)}"
@@ -177,6 +177,6 @@ async def combine_files_endpoint(
 
 
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn  # type: ignore[import-not-found] # noqa: F401
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
