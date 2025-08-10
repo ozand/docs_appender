@@ -12,7 +12,8 @@ echo 1. Start Backend (FastAPI)
 echo 2. Start Frontend (Streamlit - CLI)
 echo 3. Start Frontend (Streamlit - Browser)
 echo 4. Start both Backend and Frontend (in separate windows)
-echo 5. Exit
+echo 5. Smart Start (Setup environment and run)
+echo 6. Exit
 echo ========================================
 set /p choice=Enter the menu item number and press Enter: 
 
@@ -20,9 +21,10 @@ if "%choice%"=="1" goto start_backend
 if "%choice%"=="2" goto start_frontend_cli
 if "%choice%"=="3" goto start_frontend_browser
 if "%choice%"=="4" goto start_both
-if "%choice%"=="5" goto exit
+if "%choice%"=="5" goto smart_start
+if "%choice%"=="6" goto exit
 echo.
-echo Invalid choice. Please enter a number from 1 to 5.
+echo Invalid choice. Please enter a number from 1 to 6.
 timeout /t 2 >nul
 goto menu
 
@@ -32,7 +34,7 @@ cd backend
 REM Set PYTHONPATH to include the project root so 'shared' can be imported
 set PYTHONPATH=%CD%\..
 REM Run uv run from the backend directory to use its local venv and pyproject.toml
-start "FastAPI Backend" /D "%CD%" cmd /k "uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+start "FastAPI Backend" /D "%CD%" cmd /k "uv run uvicorn src.backend.main:app --reload --host 0.0.0.0 --port 8000"
 cd ..
 echo FastAPI backend started in a new window. (http://localhost:8000)
 timeout /t 2 >nul
@@ -64,7 +66,7 @@ cd backend
 REM Set PYTHONPATH to include the project root so 'shared' can be imported
 set PYTHONPATH=%CD%\..
 REM Run uv run from the backend directory to use its local venv and pyproject.toml
-start "FastAPI Backend" /D "%CD%" cmd /k "uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+start "FastAPI Backend" /D "%CD%" cmd /k "uv run uvicorn src.backend.main:app --reload --host 0.0.0.0 --port 8000"
 cd ..
 exit /b
 
@@ -73,6 +75,13 @@ cd frontend
 start "Streamlit Frontend" /D "%CD%" cmd /k "uv run streamlit run app.py --server.headless false"
 cd ..
 exit /b
+
+:smart_start
+echo Starting Smart Start...
+cd ..
+uv run scripts/development/smart_start.py
+cd scripts/development
+goto menu
 
 :exit
 echo Goodbye!

@@ -20,4 +20,5 @@ EXPOSE 8000
 # Команда для запуска приложения
 # Используем gunicorn для более надежного запуска в production
 # --workers 1 для простоты, можно увеличить
-CMD ["uv", "run", "gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
+# Обновляем путь к main.py из-за новой структуры директорий
+CMD ["uv", "run", "gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "src.backend.main:app", "--bind", "0.0.0.0:8000"]

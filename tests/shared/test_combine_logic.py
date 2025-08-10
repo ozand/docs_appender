@@ -1,6 +1,5 @@
-import pytest
 from datetime import datetime
-from shared.combine_logic import combine_files_content, preprocess_content
+from backend.src.shared.combine_logic import combine_files_content, preprocess_content
 
 
 def test_combine_files_content_basic():

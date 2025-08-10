@@ -1,15 +1,16 @@
-import re
 import json
-import yaml
+import re
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 
 def normalize_anchor(filename: str) -> str:
     """Генерирует валидную якорную ссылку для markdown из имени файла."""
     # Паттерн: разрешаем буквы, цифры, кириллицу, подчеркивание и дефис.
     # Дефис в конце [], чтобы он не интерпретировался как диапазон.
-    allowed_chars_pattern = r"[^a-z0-9а-яё_\--]"
+    allowed_chars_pattern = r"[^a-z0-9а-яё_\-]"
     return re.sub(
         allowed_chars_pattern,
         "",
@@ -68,6 +69,7 @@ def combine_files_content(
             - 'name': str - Имя файла.
             - 'content': str - Содержимое файла.
             - 'last_modified': datetime - Дата последнего изменения (или загрузки).
+            - 'relative_path': str (опционально) - Относительный путь к файлу (для рекурсивной обработки папок).
         sort_mode: Режим сортировки ('name', 'date_asc', 'date_desc').
         extensions: Список расширений для фильтрации (например, ['.txt', '.md']).
         preprocessing_options: Опции для предварительной обработки содержимого.
@@ -125,7 +127,7 @@ def combine_files_content(
 
     # --- 3. Создание контента в зависимости от формата ---
     if output_format.lower() == "json":
-        # Создаем структурированный JSON
+        # Создаем структурированный JSON с информацией о путях
         result: Dict[str, Any] = {
             "metadata": {
                 "title": "Combined Files",
@@ -137,17 +139,19 @@ def combine_files_content(
             "files": [],
         }
         for file_data in filtered_files:
-            result["files"].append(
-                {
-                    "name": file_data["name"],
-                    "last_modified": file_data["last_modified"].isoformat(),
-                    "content": file_data["content"],
-                }
-            )
+            file_info = {
+                "name": file_data["name"],
+                "last_modified": file_data["last_modified"].isoformat(),
+                "content": file_data["content"],
+            }
+            # Добавляем информацию о пути, если она есть
+            if "relative_path" in file_data:
+                file_info["relative_path"] = file_data["relative_path"]
+            result["files"].append(file_info)
         return json.dumps(result, ensure_ascii=False, indent=2)
 
     elif output_format.lower() == "yaml":
-        # Создаем структурированный YAML
+        # Создаем структурированный YAML с информацией о путях
         result = {
             "metadata": {
                 "title": "Combined Files",
@@ -159,13 +163,15 @@ def combine_files_content(
             "files": [],
         }
         for file_data in filtered_files:
-            result["files"].append(
-                {
-                    "name": file_data["name"],
-                    "last_modified": file_data["last_modified"].isoformat(),
-                    "content": file_data["content"],
-                }
-            )
+            file_info = {
+                "name": file_data["name"],
+                "last_modified": file_data["last_modified"].isoformat(),
+                "content": file_data["content"],
+            }
+            # Добавляем информацию о пути, если она есть
+            if "relative_path" in file_data:
+                file_info["relative_path"] = file_data["relative_path"]
+            result["files"].append(file_info)
         return yaml.dump(
             result, allow_unicode=True, default_flow_style=False, sort_keys=False
         )

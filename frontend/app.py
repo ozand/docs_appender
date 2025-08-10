@@ -6,22 +6,64 @@ import streamlit as st
 # --- Конфигурация ---
 # Получаем URL бэкенда из переменной окружения, по умолчанию локальный
 BACKEND_BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
-API_URL = f"{BACKEND_BASE_URL}/combine/"
+API_URL_FILES = f"{BACKEND_BASE_URL}/combine/"
+API_URL_FOLDER = f"{BACKEND_BASE_URL}/combine-folder/"
 
 # --- Streamlit App ---
 st.set_page_config(page_title="File Combiner", layout="wide")
 st.title("🛠 File Combiner (Streamlit + FastAPI)")
 
 # --- Виджеты ввода ---
-st.header("1. Upload Files")
-uploaded_files = st.file_uploader(
-    "Choose files",
-    accept_multiple_files=True,
-    type=["txt", "md", "py", "js", "html", "csv"],
-)  # Можно указать нужные типы
+st.header("1. Upload Files or Select Folder")
 
-# --- Отображение информации о загруженных файлах ---
-if uploaded_files:
+# Используем st.session_state для хранения выбора пользователя
+if "input_type" not in st.session_state:
+    st.session_state.input_type = "files"  # По умолчанию выбираем файлы
+
+# Радио-кнопки для выбора типа ввода
+input_type = st.radio(
+    "Select input type:",
+    ("Upload Files", "Select Folder"),
+    index=0 if st.session_state.input_type == "files" else 1,
+    horizontal=True,
+)
+
+# Обновляем session_state
+if input_type == "Upload Files":
+    st.session_state.input_type = "files"
+else:
+    st.session_state.input_type = "folder"
+
+# Виджеты для загрузки файлов или выбора папки
+uploaded_files = []
+folder_path = ""
+extensions_pattern = ""
+
+if st.session_state.input_type == "files":
+    uploaded_files = st.file_uploader(
+        "Choose files",
+        accept_multiple_files=True,
+        type=["txt", "md", "py", "js", "html", "csv"],
+    )  # Можно указать нужные типы
+else:
+    folder_path = st.text_input("Enter folder path:", key="folder_path_input")
+    extensions_pattern = st.text_input(
+        "Filter by extensions (e.g.: .txt .md .py):",
+        placeholder="Leave empty for all files",
+        help="Enter file extensions separated by spaces.",
+        key="folder_extensions_input",
+    )
+    # Добавляем поле для ввода глубины обработки папок
+    max_depth = st.number_input(
+        "Folder depth (0 for unlimited):",
+        min_value=0,
+        value=0,
+        help="Maximum folder depth to process (0 means unlimited depth)",
+        key="folder_depth_input",
+    )
+
+# --- Отображение информации о загруженных файлах или выбранной папке ---
+if st.session_state.input_type == "files" and uploaded_files:
     total_size_bytes = 0
     total_lines = 0
     for file in uploaded_files:
@@ -67,6 +109,39 @@ if uploaded_files:
     st.markdown(f"- **Total size:** {formatted_size} ({total_size_bytes} bytes)")
     st.markdown(f"- **Line count (in text files):** ~{total_lines}")
 
+elif st.session_state.input_type == "folder" and folder_path:
+    import os
+
+    try:
+        if os.path.isdir(folder_path):
+            # Подсчитываем количество файлов в папке (с учетом фильтра по расширениям, если задан)
+            extensions_list = None
+            if extensions_pattern.strip():
+                extensions_list = [
+                    ext.strip().lower()
+                    for ext in extensions_pattern.split()
+                    if ext.strip()
+                ]
+
+            file_count = 0
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename)
+                if os.path.isfile(file_path):
+                    # Если задан фильтр по расширениям, проверяем соответствие
+                    if extensions_list:
+                        if any(filename.lower().endswith(ext) for ext in extensions_list):
+                            file_count += 1
+                    else:
+                        file_count += 1
+
+            st.markdown("**Folder Info:**")
+            st.markdown(f"- **Folder path:** {folder_path}")
+            st.markdown(f"- **Number of files (matching filter):** {file_count}")
+        else:
+            st.warning(f"Path '{folder_path}' is not a valid directory.")
+    except Exception as e:
+        st.error(f"Error accessing folder: {e}")
+
 st.header("2. Configure Options")
 
 # --- Основные параметры ---
@@ -85,6 +160,7 @@ extensions_input = st.text_input(
     "Filter by extensions (e.g.: .txt .md .py):",
     placeholder="Leave empty for all files",
     help="Enter file extensions separated by spaces.",
+    key="options_extensions_input",
 )
 
 # --- Новые параметры для предварительной обработки и формата ---
@@ -108,34 +184,68 @@ output_format = st.selectbox(
 # --- Кнопка действия ---
 st.header("3. Combine")
 if st.button("🚀 Combine Files", type="primary"):
-    if not uploaded_files:
+    if st.session_state.input_type == "files" and not uploaded_files:
         st.warning("Please upload at least one file.")
+    elif st.session_state.input_type == "folder" and not folder_path:
+        st.warning("Please enter a folder path.")
     else:
         with st.spinner("Combining files..."):
             try:
-                # Подготовка данных для запроса
-                files_data = [
-                    ("files", (file.name, file, file.type)) for file in uploaded_files
-                ]
+                if st.session_state.input_type == "files":
+                    # Подготовка данных для запроса к endpoint'у файлов
+                    files_data = [
+                        ("files", (file.name, file, file.type)) for file in uploaded_files
+                    ]
 
-                # Подготовка данных формы, включая новые параметры
-                data = {
-                    "sort_mode": sort_mode,
-                    "output_format": output_format,
-                    "remove_extra_empty_lines": str(remove_extra_empty_lines).lower(),
-                    "normalize_line_endings": str(normalize_line_endings).lower(),
-                    "remove_trailing_whitespace": str(remove_trailing_whitespace).lower(),
-                }
-                if extensions_input.strip():
-                    data["extensions"] = extensions_input.strip()
+                    # Подготовка данных формы, включая новые параметры
+                    data = {
+                        "sort_mode": sort_mode,
+                        "output_format": output_format,
+                        "remove_extra_empty_lines": str(remove_extra_empty_lines).lower(),
+                        "normalize_line_endings": str(normalize_line_endings).lower(),
+                        "remove_trailing_whitespace": str(
+                            remove_trailing_whitespace
+                        ).lower(),
+                    }
+                    if extensions_input.strip():
+                        data["extensions"] = extensions_input.strip()
 
-                # Отправка POST запроса
-                response = requests.post(API_URL, files=files_data, data=data)
+                    # Отправка POST запроса
+                    response = requests.post(API_URL_FILES, files=files_data, data=data)
+
+                else:  # st.session_state.input_type == "folder"
+                    # Подготовка данных для запроса к endpoint'у папки
+                    files_data = []  # Для endpoint'а папки файлы не передаются
+
+                    # Подготовка данных формы, включая новые параметры
+                    data = {
+                        "folder_path": folder_path,
+                        "sort_mode": sort_mode,
+                        "output_format": output_format,
+                        "remove_extra_empty_lines": str(remove_extra_empty_lines).lower(),
+                        "normalize_line_endings": str(normalize_line_endings).lower(),
+                        "remove_trailing_whitespace": str(
+                            remove_trailing_whitespace
+                        ).lower(),
+                        "max_depth": str(max_depth),  # Добавляем параметр глубины
+                    }
+                    if extensions_pattern.strip():
+                        data["extensions"] = extensions_pattern.strip()
+
+                    # Отправка POST запроса
+                    response = requests.post(API_URL_FOLDER, files=files_data, data=data)
 
                 # Обработка ответа
                 if response.status_code == 200:
                     combined_content = response.text
-                    st.success(f"✅ Successfully combined {len(uploaded_files)} files!")
+                    if st.session_state.input_type == "files":
+                        st.success(
+                            f"✅ Successfully combined {len(uploaded_files)} files!"
+                        )
+                    else:
+                        st.success(
+                            f"✅ Successfully combined files from folder '{folder_path}'!"
+                        )
 
                     st.header("4. Result")
                     # Результат не отображается в основном окне, только кнопка для скачивания
@@ -174,14 +284,21 @@ if st.button("🚀 Combine Files", type="primary"):
 
 # --- Информация ---
 st.sidebar.title("ℹ️ About")
-st.sidebar.markdown("""
+st.sidebar.markdown(
+    """
 This application allows you to combine the contents of multiple text files into a single document.
 
 **How to use:**
-1. Upload files using the widget.
-2. Choose the sorting method.
-3. (Optional) Specify a filter by extensions.
-4. Configure preprocessing options and output format.
-5. Click the "Combine Files" button.
-6. Review the result and download it if desired.
-""")
+1. Choose input type: upload files or select a folder.
+2. If uploading files:
+    - Use the file uploader widget.
+3. If selecting a folder:
+    - Enter the folder path.
+    - (Optional) Specify a filter by extensions for the folder.
+    - (Optional) Specify folder depth for recursive processing.
+4. Choose the sorting method.
+5. Configure preprocessing options and output format.
+6. Click the "Combine Files" button.
+7. Review the result and download it if desired.
+"""
+)
