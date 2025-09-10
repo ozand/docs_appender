@@ -1,0 +1,1 @@
+T:/Code/python/Tools/Docs Appender/.roo/rules/03-e2e_tests_guidline.md

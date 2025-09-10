@@ -13,6 +13,9 @@ dependencies = [
     "pydantic>=1.8.0,<2.0.0",
     "PyYAML>=5.4.1,<7.0.0",
     "requests>=2.32.4",
+    "python-jose[cryptography]>=3.3.0,<4.0.0",
+    "passlib[bcrypt]>=1.7.4,<2.0.0",
+    "email-validator>=2.2.0",
 ]
 
 [tool.uv]
@@ -23,6 +26,9 @@ dev-dependencies = [
     "pytest-cov>=4.0.0,<5.0.0",
     "httpx>=0.23.0,<0.24.0", # Для тестирования FastAPI приложений
     "pre-commit>=3.0.0,<4.0.0",
+    "pytest-playwright>=0.5.2",
+    "testcontainers>=3.7.1",
+    "pytest-asyncio>=0.23.8",
 ]
 
 [tool.ruff]

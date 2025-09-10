@@ -1,4 +1,8 @@
 import os
+import sys
+
+# Add the src directory to Python path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 import requests
 import streamlit as st
@@ -9,9 +13,15 @@ BACKEND_BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 API_URL_FILES = f"{BACKEND_BASE_URL}/combine/"
 API_URL_FOLDER = f"{BACKEND_BASE_URL}/combine-folder/"
 
+# Check if shutdown functionality is enabled (set by start_app.py script)
+SHUTDOWN_ENABLED = os.getenv("STREAMLIT_SHUTDOWN_ENABLED", "false").lower() == "true"
+
 # --- Streamlit App ---
 st.set_page_config(page_title="File Combiner", layout="wide")
+
+# --- User Interface (No Authentication Required) ---
 st.title("🛠 File Combiner (Streamlit + FastAPI)")
+st.markdown("**Welcome!** 👋")
 
 # --- Виджеты ввода ---
 st.header("1. Upload Files or Select Folder")
@@ -191,6 +201,9 @@ if st.button("🚀 Combine Files", type="primary"):
     else:
         with st.spinner("Combining files..."):
             try:
+                # No authentication headers needed
+                headers = {}
+
                 if st.session_state.input_type == "files":
                     # Подготовка данных для запроса к endpoint'у файлов
                     files_data = [
@@ -210,8 +223,8 @@ if st.button("🚀 Combine Files", type="primary"):
                     if extensions_input.strip():
                         data["extensions"] = extensions_input.strip()
 
-                    # Отправка POST запроса
-                    response = requests.post(API_URL_FILES, files=files_data, data=data)
+                    # Отправка POST запроса with auth headers
+                    response = requests.post(API_URL_FILES, files=files_data, data=data, headers=headers)
 
                 else:  # st.session_state.input_type == "folder"
                     # Подготовка данных для запроса к endpoint'у папки
@@ -232,8 +245,8 @@ if st.button("🚀 Combine Files", type="primary"):
                     if extensions_pattern.strip():
                         data["extensions"] = extensions_pattern.strip()
 
-                    # Отправка POST запроса
-                    response = requests.post(API_URL_FOLDER, files=files_data, data=data)
+                    # Отправка POST запроса with auth headers
+                    response = requests.post(API_URL_FOLDER, files=files_data, data=data, headers=headers)
 
                 # Обработка ответа
                 if response.status_code == 200:
@@ -282,7 +295,7 @@ if st.button("🚀 Combine Files", type="primary"):
             except Exception as e:
                 st.error(f"An unexpected error occurred: {e}")
 
-# --- Информация ---
+# --- Sidebar ---
 st.sidebar.title("ℹ️ About")
 st.sidebar.markdown(
     """
@@ -302,3 +315,88 @@ This application allows you to combine the contents of multiple text files into 
 7. Review the result and download it if desired.
 """
 )
+
+# Add shutdown functionality to sidebar
+with st.sidebar:
+    st.divider()
+    st.header("🛑 Application Control")
+    st.divider()
+    st.header("🛑 Application Control")
+    
+    # Check if we're running in a subprocess (launched by start_app.py)
+    # This helps determine if shutdown will work properly
+    import os
+    is_subprocess = os.environ.get('STREAMLIT_SHUTDOWN_ENABLED', 'false').lower() == 'true'
+    
+    if is_subprocess:
+        st.info("✅ Shutdown available (running as subprocess)")
+    else:
+        st.warning("⚠️ Shutdown only available when launched via start_app.py")
+    
+    # Add shutdown button with confirmation
+    if st.button("⏹️ Shutdown Application", type="secondary", use_container_width=True):
+        # Set a flag in session state to show the confirmation dialog
+        st.session_state.show_shutdown_confirmation = True
+    
+    # Show confirmation dialog if flag is set
+    if st.session_state.get('show_shutdown_confirmation', False):
+        st.warning("⚠️ **WARNING:** This will stop the entire application including backend and frontend services!")
+        st.markdown("""
+        **What will be stopped:**
+        - This Streamlit frontend
+        - The FastAPI backend service
+        - All related processes
+        
+        **Before proceeding:**
+        - Save any unsaved work
+        - Download any generated files you need
+        """)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Confirm Shutdown", type="primary", use_container_width=True):
+                # Execute shutdown
+                shutdown_app()
+        with col2:
+            if st.button("❌ Cancel", use_container_width=True):
+                # Clear the confirmation flag
+                st.session_state.show_shutdown_confirmation = False
+                st.rerun()
+
+def shutdown_app():
+    """Shutdown the application by calling the stop_app.py script."""
+    import subprocess
+    import sys
+    import os
+    from pathlib import Path
+    
+    try:
+        # Get the project root (parent of frontend directory)
+        project_root = Path(__file__).parent.parent
+        
+        # Path to the stop script
+        stop_script = project_root / "scripts" / "development" / "stop_app.py"
+        
+        if not stop_script.exists():
+            st.error(f"Stop script not found: {stop_script}")
+            return
+            
+        # Run the stop script to shutdown both services
+        st.info("Stopping application services...")
+        result = subprocess.run([
+            sys.executable,
+            str(stop_script),
+            "both"
+        ], cwd=project_root, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            st.success("✅ Application services stopped successfully!")
+            st.info("You can now close this browser tab.")
+        else:
+            st.error(f"❌ Failed to stop application services:\n{result.stderr}")
+            
+    except Exception as e:
+        st.error(f"❌ Error during shutdown: {str(e)}")
+        
+    # Prevent further execution
+    st.stop()

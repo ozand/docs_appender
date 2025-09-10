@@ -1,0 +1,4 @@
+;; Этот блок сгенерирован автоматически скриптом generate_logseq_config.py
+ ;; Этот блок сгенерирован автоматически скриптом generate_logseq_config.py
+ ;; Этот блок сгенерирован автоматически скриптом generate_logseq_config.py
+ :hidden [".archive" ".benchmarks" ".git" ".github" ".memory-bank" ".mypy_cache" ".pytest_cache" ".roo" ".ruff_cache" ".sources" ".specstory" ".temp_migration" ".temp_scripts" ".uv" ".vscode" "backend" "backups" "docs" "frontend" "scripts" "src" "test_folder" "tests"]

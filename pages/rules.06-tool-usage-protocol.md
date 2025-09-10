@@ -1,0 +1,1 @@
+T:/Code/python/Tools/Docs Appender/.roo/rules/06-tool-usage-protocol.md

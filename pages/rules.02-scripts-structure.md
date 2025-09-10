@@ -1,0 +1,1 @@
+T:/Code/python/Tools/Docs Appender/.roo/rules/02-scripts_structure.md

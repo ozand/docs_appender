@@ -1,0 +1,1 @@
+T:/Code/python/Tools/Docs Appender/.roo/rules/07-entity-linking-validation.md

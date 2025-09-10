@@ -1,0 +1,1 @@
+T:/Code/python/Tools/Docs Appender/.roo/rules/01-quality_guideline.md

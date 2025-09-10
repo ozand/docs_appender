@@ -1,0 +1,52 @@
+{
+  "test_users": [
+    {
+      "email": "test@example.com",
+      "username": "testuser",
+      "password": "testpassword123",
+      "is_active": true,
+      "description": "Default test user for E2E tests"
+    },
+    {
+      "email": "admin@example.com",
+      "username": "admin",
+      "password": "admin123",
+      "is_active": true,
+      "description": "Admin test user for E2E tests"
+    },
+    {
+      "email": "inactive@example.com",
+      "username": "inactiveuser",
+      "password": "inactive123",
+      "is_active": false,
+      "description": "Inactive test user for E2E tests"
+    }
+  ],
+  "test_scenarios": {
+    "valid_login": {
+      "email": "test@example.com",
+      "password": "testpassword123",
+      "expected_result": "success"
+    },
+    "invalid_email": {
+      "email": "nonexistent@example.com",
+      "password": "password123",
+      "expected_result": "authentication_failed"
+    },
+    "wrong_password": {
+      "email": "test@example.com",
+      "password": "wrongpassword",
+      "expected_result": "authentication_failed"
+    },
+    "empty_credentials": {
+      "email": "",
+      "password": "",
+      "expected_result": "validation_error"
+    },
+    "inactive_user": {
+      "email": "inactive@example.com",
+      "password": "inactive123",
+      "expected_result": "user_inactive"
+    }
+  }
+}

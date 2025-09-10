@@ -1,0 +1,112 @@
+{
+  "test_users": [
+    {
+      "email": "test@example.com",
+      "password": "testpassword123",
+      "username": "testuser",
+      "is_active": true,
+      "description": "Default test user for frontend E2E tests"
+    },
+    {
+      "email": "admin@example.com",
+      "password": "admin123",
+      "username": "admin",
+      "is_active": true,
+      "description": "Admin test user for frontend E2E tests"
+    },
+    {
+      "email": "inactive@example.com",
+      "password": "inactive123",
+      "username": "inactiveuser",
+      "is_active": false,
+      "description": "Inactive test user for frontend E2E tests"
+    }
+  ],
+  "test_scenarios": {
+    "valid_login": {
+      "email": "test@example.com",
+      "password": "testpassword123",
+      "remember_me": false,
+      "expected_result": "success"
+    },
+    "valid_login_with_remember_me": {
+      "email": "test@example.com",
+      "password": "testpassword123",
+      "remember_me": true,
+      "expected_result": "success"
+    },
+    "invalid_email": {
+      "email": "nonexistent@example.com",
+      "password": "password123",
+      "remember_me": false,
+      "expected_result": "authentication_failed"
+    },
+    "wrong_password": {
+      "email": "test@example.com",
+      "password": "wrongpassword",
+      "remember_me": false,
+      "expected_result": "authentication_failed"
+    },
+    "empty_email": {
+      "email": "",
+      "password": "password123",
+      "remember_me": false,
+      "expected_result": "validation_error"
+    },
+    "empty_password": {
+      "email": "test@example.com",
+      "password": "",
+      "remember_me": false,
+      "expected_result": "validation_error"
+    },
+    "empty_credentials": {
+      "email": "",
+      "password": "",
+      "remember_me": false,
+      "expected_result": "validation_error"
+    },
+    "inactive_user": {
+      "email": "inactive@example.com",
+      "password": "inactive123",
+      "remember_me": false,
+      "expected_result": "authentication_failed"
+    }
+  },
+  "form_validation": {
+    "invalid_emails": [
+      "invalid.email",
+      "@example.com",
+      "user@",
+      "user.example.com",
+      ""
+    ],
+    "weak_passwords": [
+      "",
+      "123",
+      "password",
+      "weak"
+    ],
+    "special_characters": [
+      "test+label@example.com",
+      "test.user@example.com",
+      "user-name@example.com"
+    ]
+  },
+  "ui_scenarios": {
+    "mobile_viewport": {
+      "width": 375,
+      "height": 667,
+      "description": "iPhone SE viewport"
+    },
+    "tablet_viewport": {
+      "width": 768,
+      "height": 1024,
+      "description": "iPad viewport"
+    },
+    "desktop_viewport": {
+      "width": 1920,
+      "height": 1080,
+      "description": "Full HD desktop viewport"
+    }
+  }
+}
