@@ -2,6 +2,7 @@
 E2E tests for critical user flows in the backend.
 """
 
+
 def test_critical_backend_flows():
     """
     Placeholder test for critical backend flows.

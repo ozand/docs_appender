@@ -6,19 +6,15 @@ This module provides the main API for file combination functionality.
 
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, status
-from fastapi.responses import HTMLResponse, PlainTextResponse
-
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, validator
-
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from shared.combine_logic import combine_files_content  # Импортируем логику из shared
 
 app = FastAPI(title="File Combiner API", description="API for combining file contents.")
-
 
 
 # CORS middleware configuration
@@ -34,6 +30,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -138,8 +135,16 @@ async def combine_files_endpoint(
                 preprocessing_options,
                 output_format,
             )
+        except ValueError as e:
+            # Handle specific validation errors from combine logic
+            raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}") from e
+        except OSError as e:
+            # Handle file system errors
+            raise HTTPException(
+                status_code=500, detail=f"File system error: {str(e)}"
+            ) from e
         except Exception as e:
-            # Catch any errors from shared logic and convert to HTTP 500
+            # Catch any other unexpected errors from combine logic
             raise HTTPException(
                 status_code=500, detail=f"Error in combine logic: {str(e)}"
             ) from e
@@ -154,6 +159,9 @@ async def combine_files_endpoint(
 
         return PlainTextResponse(content=combined_content, media_type=media_type)
 
+    except (ValueError, TypeError) as e:
+        # Handle validation and type errors
+        raise HTTPException(status_code=400, detail=f"Invalid request: {str(e)}") from e
     except Exception as e:
         # Catch any other unexpected errors
         raise HTTPException(

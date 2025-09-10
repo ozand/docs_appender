@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class User(BaseModel):
     """Minimal user model for compatibility."""
+
     id: str = "anonymous"
     email: str = "anonymous@localhost"
     username: str = "anonymous"

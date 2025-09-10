@@ -7,7 +7,7 @@ including TestClient setup and test data management.
 
 import asyncio
 import os
-from typing import AsyncGenerator, Generator
+from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,6 +18,7 @@ os.environ["TESTING"] = "true"
 # Add src directory to Python path for imports
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from backend.main import app
